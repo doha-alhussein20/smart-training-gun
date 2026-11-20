@@ -50,7 +50,7 @@ void setup() {
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     for (;;);
   }
-  display.setTextColor(SSD1306_WHITE);
+  display.setTextColor(SSD1306_WHITE);//حددنا الون هون منشان ما ضل كل ما بدي أكتب على الشاشة حدد اللون
 
   if (myDFPlayer.begin(mySoftwareSerial)) {
     myDFPlayer.volume(5);
@@ -139,13 +139,13 @@ void updateOLEDDisplay() {
     display.setCursor(40, 0);
     display.print(currentScore);
 
-    display.drawLine(0, 18, 128, 18, SSD1306_WHITE);
+    display.drawLine(0, 18, 128, 18, SSD1306_WHITE);//نرسم خط
 
     display.setTextSize(1);
     display.setCursor(0, 22);
     display.print(lastMessage);
 
-    display.drawLine(0, 34, 128, 34, SSD1306_WHITE);
+    display.drawLine(0, 34, 128, 34, SSD1306_WHITE);//نرسم خط
 
     display.setCursor(0, 45);
     display.print(F("TRIES:"));
