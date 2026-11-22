@@ -3,9 +3,7 @@ import serial
 import time
 import numpy as np
 
-# =========================================================
 # إعدادات الاتصال والكاميرا
-# =========================================================
 SERIAL_PORT = 'COM9'
 BAUD_RATE = 9600
 MAX_ATTEMPTS = 4          # عدد المحاولات لكل شخص
@@ -20,8 +18,8 @@ except Exception as e:
 
 camera_index = 1
 cap = cv2.VideoCapture(camera_index)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)#عرض
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)#ارتفاع
 
 if not cap.isOpened():
     print("ERROR: camera not recognized")
@@ -36,19 +34,17 @@ attempts = MAX_ATTEMPTS   # المحاولات المتبقية
 last_color_text = "Ready!"
 text_color = (255, 255, 255)
 
-# =========================================================
 # حدود الألوان
-# =========================================================
-BLUE_RANGE   = (100, 135)   # قراءاتك: 116 إلى 121
-PURPLE_RANGE = (136, 179)   # قراءتك: 167 إلى 168
+BLUE_RANGE   = (100, 135)   
+PURPLE_RANGE = (136, 179)   
 YELLOW_RANGE = (8, 38)
 GREEN_RANGE  = (39, 85)
-MIN_SAT = 40                # أقل تشبّع لاعتبارها لون (أقل منه أبيض/رمادي)
+MIN_SAT = 40                #  (أقل منه أبيض/رمادي)
 MIN_VAL = 40                # أقل سطوع (أقل منه أسود)
 
-# =========================================================
+
 # ألوان النص على شاشة اللابتوب
-# =========================================================
+
 color_bgr = {
     "YELLOW / ORANGE": (0, 165, 255),
     "GREEN": (0, 255, 0),
@@ -56,9 +52,7 @@ color_bgr = {
     "PURPLE": (255, 0, 255),
 }
 
-# =========================================================
 # دوال الإرسال وتحليل الألوان
-# =========================================================
 def send_update():
     ser.write(f"UPDATE:{attempts}:{score}:{last_color_text}\n".encode('utf-8'))
 
@@ -108,9 +102,8 @@ def detect_color_and_score(clean_frame):
     print(color)
     send_update()
 
-# =========================================================
 # الحلقة الرئيسية
-# =========================================================
+
 try:
     while True:
         ret, frame = cap.read()
@@ -132,7 +125,7 @@ try:
         cv2.putText(frame, f"Score: {score}", (30, 60),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 255), 3)
 
-        # المحاولات (4 دوائر)
+        # المحاولات (4 قلوب)
         cv2.putText(frame, "Tries:", (30, 110),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
         for i in range(MAX_ATTEMPTS):
