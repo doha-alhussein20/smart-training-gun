@@ -3,7 +3,9 @@ import serial
 import time
 import numpy as np
 
+
 # إعدادات الاتصال والكاميرا
+
 SERIAL_PORT = 'COM9'
 BAUD_RATE = 9600
 MAX_ATTEMPTS = 4          # عدد المحاولات لكل شخص
@@ -18,8 +20,8 @@ except Exception as e:
 
 camera_index = 1
 cap = cv2.VideoCapture(camera_index)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)#عرض
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)#ارتفاع
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)   # عرض
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)   # ارتفاع
 
 if not cap.isOpened():
     print("ERROR: camera not recognized")
@@ -34,13 +36,21 @@ attempts = MAX_ATTEMPTS   # المحاولات المتبقية
 last_color_text = "Ready!"
 text_color = (255, 255, 255)
 
-# حدود الألوان
-BLUE_RANGE   = (100, 135)   
-PURPLE_RANGE = (136, 179)   
+
+# حدود الألوان (H) وحدود التشبّع (S) لكل لون
+
+BLUE_RANGE   = (100, 135)
+PURPLE_RANGE = (136, 179)
 YELLOW_RANGE = (8, 38)
-GREEN_RANGE  = (39, 85)
-MIN_SAT = 40                #  (أقل منه أبيض/رمادي)
-MIN_VAL = 40                # أقل سطوع (أقل منه أسود)
+GREEN_RANGE  = (39, 99)     # عدّلناه (كان 39 إلى 85)
+
+YELLOW_MIN_SAT = 18
+PURPLE_MIN_SAT = 25
+BLUE_MIN_SAT   = 40
+GREEN_MIN_SAT  = 20         # عدّلناه (كان 40)
+
+MIN_VAL = 40              # أقل سطوع (أقل منه أسود)
+WHITE_SAT = 18            # أقل منه أبيض/رمادي
 
 
 # ألوان النص على شاشة اللابتوب
@@ -52,21 +62,25 @@ color_bgr = {
     "PURPLE": (255, 0, 255),
 }
 
+
 # دوال الإرسال وتحليل الألوان
+
 def send_update():
     ser.write(f"UPDATE:{attempts}:{score}:{last_color_text}\n".encode('utf-8'))
 
 def classify(h, s, v):
-    if v < MIN_VAL or s < MIN_SAT:
+    if v < MIN_VAL:
         return None, 0, "NO COLOR"
-    if YELLOW_RANGE[0] <= h <= YELLOW_RANGE[1]:
+    if YELLOW_RANGE[0] <= h <= YELLOW_RANGE[1] and s >= YELLOW_MIN_SAT:
         return "YELLOW / ORANGE", 6, None
-    if GREEN_RANGE[0] <= h <= GREEN_RANGE[1]:
+    if GREEN_RANGE[0] <= h <= GREEN_RANGE[1] and s >= GREEN_MIN_SAT:
         return "GREEN", 2, None
-    if BLUE_RANGE[0] <= h <= BLUE_RANGE[1]:
+    if BLUE_RANGE[0] <= h <= BLUE_RANGE[1] and s >= BLUE_MIN_SAT:
         return "BLUE", 4, None
-    if PURPLE_RANGE[0] <= h <= PURPLE_RANGE[1]:
+    if PURPLE_RANGE[0] <= h <= PURPLE_RANGE[1] and s >= PURPLE_MIN_SAT:
         return "PURPLE", 8, None
+    if s < WHITE_SAT:
+        return None, 0, "NO COLOR"
     return None, 0, "WRONG"
 
 def detect_color_and_score(clean_frame):
@@ -102,6 +116,7 @@ def detect_color_and_score(clean_frame):
     print(color)
     send_update()
 
+
 # الحلقة الرئيسية
 
 try:
@@ -116,7 +131,7 @@ try:
         cx, cy = width // 2, height // 2
 
         # مربع التصويب (نفس حجم منطقة القراءة)
-        box_size = 15
+        box_size = 20
         cv2.rectangle(frame, (cx - box_size, cy - box_size),
                       (cx + box_size, cy + box_size), (0, 255, 255), 2)
         cv2.circle(frame, (cx, cy), 3, (0, 0, 255), -1)
@@ -125,7 +140,7 @@ try:
         cv2.putText(frame, f"Score: {score}", (30, 60),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 255), 3)
 
-        # المحاولات (4 قلوب)
+        # المحاولات (4 دوائر)
         cv2.putText(frame, "Tries:", (30, 110),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
         for i in range(MAX_ATTEMPTS):
